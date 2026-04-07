@@ -1,0 +1,72 @@
+-- REINICIAR TABELA
+DROP TABLE IF EXISTS cliente CASCADE;
+DROP TABLE IF EXISTS veiculo CASCADE;
+DROP TABLE IF EXISTS telefone CASCADE;
+DROP TABLE IF EXISTS ordem_servico CASCADE;
+DROP TABLE IF EXISTS servico CASCADE;
+DROP TABLE IF EXISTS mecanico CASCADE;
+DROP TABLE IF EXISTS servico_realizado CASCADE;
+
+-- CRIAR TABELAS
+CREATE TABLE cliente (
+	id SERIAL PRIMARY KEY,
+	cpf VARCHAR(11) UNIQUE NOT NULL,
+	data_nascimento DATE NOT NULL,
+	nome_completo VARCHAR NOT NULL,
+	endereco VARCHAR NOT NULL
+);
+
+CREATE TABLE veiculo (
+	id SERIAL PRIMARY KEY,
+	placa VARCHAR UNIQUE NOT NULL,
+	cor VARCHAR DEFAULT NULL,
+	ano INT DEFAULT NULL,
+	marca VARCHAR NOT NULL,
+	modelo VARCHAR NOT NULL,
+	cliente_id INT NOT NULL REFERENCES cliente(id)
+);
+
+CREATE TABLE telefone (
+	cliente_id INT NOT NULL REFERENCES cliente(id) ON DELETE CASCADE,
+	numero VARCHAR(11) NOT NULL,
+	tipo VARCHAR DEFAULT NULL,
+
+	PRIMARY KEY (cliente_id, numero)
+);
+
+CREATE TABLE ordem_servico (
+	id SERIAL PRIMARY KEY,
+	numero_os VARCHAR UNIQUE NOT NULL,
+	data_hora_abertura TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	data_hora_fechamento TIMESTAMP DEFAULT NULL,
+	quilometragem_abertura INT NOT NULL,
+	veiculo_id INT NOT NULL REFERENCES veiculo(id),
+	cliente_id INT NOT NULL REFERENCES cliente(id),
+	observacoes VARCHAR DEFAULT NULL,
+	status VARCHAR NOT NULL DEFAULT 'EM EXECUÇÃO' -- EM EXECUÇÃO, FECHADO, CANCELADO
+);
+
+CREATE TABLE servico (
+	id SERIAL PRIMARY KEY,
+	descricao VARCHAR NOT NULL,
+	preco_padrao DECIMAL(10,2) NOT NULL,
+	disponivel BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE mecanico (
+	id SERIAL PRIMARY KEY,
+	cpf VARCHAR(11) UNIQUE NOT NULL, -- apenas numeros
+	nome_completo VARCHAR NOT NULL,
+	data_contratacao DATE NOT NULL DEFAULT CURRENT_DATE,
+	data_demissao DATE DEFAULT NULL,
+	salario DECIMAL(10,2) NOT NULL
+);	
+
+CREATE TABLE servico_realizado (
+	id SERIAL PRIMARY KEY,
+	valor_cobrado DECIMAL(10,2) NOT NULL,
+	data_execucao DATE NOT NULL DEFAULT CURRENT_DATE,
+	ordem_servico_id INT NOT NULL REFERENCES ordem_servico(id) ON DELETE CASCADE,
+	servico_id INT NOT NULL REFERENCES servico(id),
+	mecanico_id INT NOT NULL REFERENCES mecanico(id)
+)
