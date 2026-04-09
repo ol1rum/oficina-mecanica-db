@@ -1,39 +1,49 @@
-import psycopg
-from psycopg.rows import dict_row
-import os
-from utils import CAMINHO_SQL_COMMANDS, CAMINHO_SQL_QUERIES
+from pathlib import Path
 
+import psycopg
+from psycopg.rows import dict_row, DictRow
+from psycopg.rows import dict_row
+from typing import cast, LiteralString
+import os
 
 
 class DatabaseManager:
 
-    def __init__(self) -> None:
+    def __init__(self, pasta_base: Path) -> None:
         self.conn_str: str = (
             f"dbname={os.getenv('DB_NAME')} "
             f"user={os.getenv('DB_USER')} "
             f"password={os.getenv('DB_PASSWORD')} "
             f"host={os.getenv('DB_HOST')}"
         )
+        self.pasta_base: Path = pasta_base
 
-    def consultar(self, nome_arquivo_sql: str, parametros: dict | None) -> list:
+    def consultar(self, arquivo_sql: str, parametros: tuple | None = None) -> list:
         """Ler um arquivo SQL e retornar os dados da consulta (SELECT)."""
 
-        with psycopg.connect(self.conn_str, row_factory=dict_row) as conn:  #type: ignore
+        with psycopg.connect(self.conn_str, row_factory=dict_row) as conn: # type: ignore
             with conn.cursor() as cur:
-                with open(CAMINHO_SQL_QUERIES, 'r', encoding='utf-8') as f:
-                    cur.execute(f.read(), params=parametros)  #type: ignore
+                with open(self.pasta_base / arquivo_sql, 'r', encoding='utf-8') as f:
+                    query = cast(LiteralString, f.read())
+                    cur.execute(query, params=parametros)
                     return cur.fetchall()
 
 
-    def executar(self, nome_arquivo_sql: str, parametros: tuple | None) -> None:
+    def executar(self, arquivo_sql: str, parametros: tuple | None = None, autocommit: bool = True) -> dict:
         """Ler um arquivo SQL e executa comandos de alteração de tabelas e dados (INSERT, UPDATE, DELETE)."""
 
         with psycopg.connect(self.conn_str) as conn:
             with conn.cursor() as cur:
-                with open(CAMINHO_SQL_COMMANDS, 'r', encoding='utf-8') as f:
-                    cur.execute(f.read(), params=parametros)  #type: ignore
+                with open(self.pasta_base / arquivo_sql, 'r', encoding='utf-8') as f:
+                    query = cast(LiteralString, f.read())
+                    cur.execute(query, params=parametros)
+                    
+                    if autocommit:
+                        conn.commit()
+                    else:
+                        conn.rollback()
 
-            conn.commit()
+                    return cur.fetchone()  #type: ignore
 
 
 if __name__ == '__main__':
