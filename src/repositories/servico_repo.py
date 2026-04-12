@@ -20,14 +20,30 @@ class ServicoRepository(BaseRepository):
             ),
         )
     
-    def desativar(self, id: int) -> int:
+    def mudarDisponibilidade(self, id: int, disponivel: bool) -> int:
         return self.execSql(
             "desativar.sql",
-            (id,),
+            (disponivel, id),
         )
 
-    def listarAtivos(self) -> list:
-        res: list[dict] = self.db.consultar("listar_ativos.sql")
+    def listarFiltDisponivel(self, disponivel: bool = True) -> list:
+        res: list[dict] = self.db.consultar("listar_filt.sql", (disponivel,))
 
         lista_servicos: list = [Servico(**res) for res in res]
         return lista_servicos
+
+    def reativar(self, id: int) -> int:
+        return self.execSql(
+            "reativar.sql",
+            (id,),
+        )
+    
+    def alterarPrecoDescricao(self, id: int, servico: Servico) -> int:
+        return self.execSql(
+            "alterar_preco_descricao.sql",
+            (
+                servico.preco,
+                servico.descricao,
+                id
+            ),
+        )
