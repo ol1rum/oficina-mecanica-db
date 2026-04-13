@@ -1,6 +1,4 @@
 from ..models.veiculo import Veiculo
-from ..database.database_manager import DatabaseManager
-from ..utils import CAMINHO_SQL
 from .base_repo import BaseRepository
 
 
@@ -33,12 +31,6 @@ class VeiculoRepository(BaseRepository):
         lista_veiculos: list = [Veiculo(**res) for res in res]
         return lista_veiculos
     
-    def mudarDono(self, client_id: int, veiculo_id: int) -> int:
-        return self.execSql(
-            "mudar_dono.sql",
-            (
-                client_id,
-                veiculo_id
-            ),
-        )
+    def mudarDono(self, client_id: int, placa: str) -> int:
+        return self.execSql("mudar_dono.sql", (client_id, placa))
     

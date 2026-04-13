@@ -1,6 +1,4 @@
 from ..models.servico_realizado import ServicoRealizado
-from ..database.database_manager import DatabaseManager
-from ..utils import CAMINHO_SQL
 from .base_repo import BaseRepository
 
 

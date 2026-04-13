@@ -1,8 +1,11 @@
 from pathlib import Path
+import pandas as pd
+from dataclasses import asdict
 
 CAMINHO_ROOT = Path(__file__).resolve().parent.parent
 CAMINHO_SQL = CAMINHO_ROOT / 'sql'
 
-if __name__ == '__main__':
-    print(CAMINHO_ROOT)
-    print(CAMINHO_SQL)
+def objeto_para_dataframe(lista_obj: list):
+    dados = [asdict(obj) for obj in lista_obj]
+    return pd.DataFrame(dados)
+

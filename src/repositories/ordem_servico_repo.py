@@ -1,9 +1,6 @@
-from datetime import datetime
 from typing import Literal
 
 from ..models.ordem_servico import OrdemServico
-from ..database.database_manager import DatabaseManager
-from ..utils import CAMINHO_SQL
 from .base_repo import BaseRepository
 
 
@@ -24,16 +21,6 @@ class OSRepository(BaseRepository):
             ),
         )
 
-    def finalizar(self, id: int, datetime_fechamento: datetime) -> int:
-        return self.execSql(
-            "finalizar_os.sql",
-            (
-                datetime_fechamento,
-                "FINALIZADO",
-                id
-            ),
-        )
-
     def listarAbertas(self):
         res = self.db.consultar("listar_abertas.sql")
 
@@ -47,19 +34,7 @@ class OSRepository(BaseRepository):
         return lista_os
 
     def mudarObs(self, observacoes: str, id: int):
-        return self.execSql(
-            "mudar_obs.sql",
-            (
-                observacoes,
-                id
-            ),
-        )
+        return self.execSql("mudar_obs.sql", (observacoes, id))
     
-    def mudarStatus(self, status: Literal["EM EXECUÇÃO", "FINALIZADA", "CANCELADA"], id: int):
-        return self.execSql(
-            "mudar_status.sql",
-            (
-                status,
-                id
-            ),
-        )
+    def atualizarStatusFechamento(self, status: Literal["FINALIZADA", "CANCELADA"], id: int):
+        return self.execSql("fechar_os.sql", (status, id))

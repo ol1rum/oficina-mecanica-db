@@ -1,8 +1,6 @@
 from datetime import date
 
 from ..models.mecanico import Mecanico
-from ..database.database_manager import DatabaseManager
-from ..utils import CAMINHO_SQL
 from .base_repo import BaseRepository
 
 

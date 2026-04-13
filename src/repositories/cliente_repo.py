@@ -1,6 +1,4 @@
 from ..models.cliente import Cliente
-from ..database.database_manager import DatabaseManager
-from ..utils import CAMINHO_SQL
 from .base_repo import BaseRepository
 
 
