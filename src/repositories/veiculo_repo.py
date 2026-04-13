@@ -31,6 +31,6 @@ class VeiculoRepository(BaseRepository):
         lista_veiculos: list = [Veiculo(**res) for res in res]
         return lista_veiculos
     
-    def mudarDono(self, client_id: int, placa: str) -> int:
-        return self.execSql("mudar_dono.sql", (client_id, placa))
+    def transferirProprietario(self, client_id: int, placa: str) -> int:
+        return self.execSql("transferir_proprietario.sql", (client_id, placa))
     
