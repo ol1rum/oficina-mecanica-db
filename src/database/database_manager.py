@@ -43,7 +43,7 @@ class DatabaseManager:
                     else:
                         conn.rollback()
 
-                    return cur.fetchone()  #type: ignore
+                    return cur.fetchone() if cur.description else {}  #type: ignore
 
 
 if __name__ == '__main__':

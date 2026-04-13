@@ -37,7 +37,7 @@ INSERT INTO ordem_servico (
     cliente_id,
     observacoes,
     status
-) VALUES ('OS-2026-001', '2026-04-01 09:00:00', '2026-04-01 16:30:00', 45000, 2, 2, 'Revisão de rotina para viagem.', 'FECHADO');
+) VALUES ('OS-2026-001', '2026-04-01 09:00:00', '2026-04-01 16:30:00', 45000, 2, 2, 'Revisão de rotina para viagem.', 'FINALIZADA');
 
 -- Uma OS aberta (Em execução)
 INSERT INTO ordem_servico (

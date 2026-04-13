@@ -10,5 +10,5 @@ class BaseRepository:
     def execSql(self, arquivo_sql: str, parametros: tuple = (), commit: bool = True) -> int:
         """Executa um arquivo SQL não SELECT com os parâmetros fornecidos e retorna o id de alteração."""
         res: dict = self.db.executar(arquivo_sql=arquivo_sql, parametros=parametros, autocommit=commit)
-        return res[0]
+        return res[0] if res else 0
     
