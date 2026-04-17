@@ -20,8 +20,8 @@ class MecanicoRepository(BaseRepository):
             )
         )
     
-    def listar_todos(self):
-        res = self.db.consultar(self.path, "listar_ativos.sql")
+    def listar_todos(self) -> list[Mecanico]:
+        res = self.db.consultar(self.path, "listar_todos.sql")
 
         lista_mecanicos: list = [Mecanico(**res) for res in res]
         return lista_mecanicos
@@ -31,3 +31,29 @@ class MecanicoRepository(BaseRepository):
             "demitir.sql",
             (data, id),
         )
+
+    def buscar_cpf(self, cpf: str) -> Mecanico | None:
+        res: list[dict] = self.db.consultar(self.path, "buscar_cpf.sql", (cpf,))
+
+        return Mecanico(**res[0]) if res else None
+    
+    def buscar_id(self, id: int) -> Mecanico | None:
+        res: list[dict] = self.db.consultar(self.path, "buscar_id.sql", (id,))
+
+        return Mecanico(**res[0]) if res else None
+    
+    def recontratar(self, mecanico_model: Mecanico) -> int:
+
+        if mecanico_model.id:
+            return self.exec_sql(
+                "recontratar.sql",
+                (
+                    mecanico_model.nome,
+                    mecanico_model.data_contratacao,
+                    mecanico_model.salario,
+                    mecanico_model.cpf,
+                )
+            )
+        
+        else:
+            raise ValueError("Mecanico não encontrado.")

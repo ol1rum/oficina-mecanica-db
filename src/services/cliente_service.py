@@ -39,8 +39,11 @@ class ClienteService:
             raise e # Propaga o erro para a camada de CLI saber o que aconteceu
     
     def vincular_veiculo(self, cliente_model: Cliente, veiculo_model: Veiculo) -> None:
+
         if cliente_model.id:
-            self.veiculo_serv.transferir_proprietario(cliente_model.id, veiculo_model.placa)
+            veiculo_model.cliente_id = cliente_model.id
+            self.veiculo_serv.cadastrar_veiculo(veiculo_model)
+            self.cliente_repo.db.commit()
 
 
     def listar_todos(self) -> list[Cliente]:
@@ -75,3 +78,16 @@ class ClienteService:
         
         except ValueError:
             return False
+        
+    def buscar_por_id(self, id: int) -> Cliente:
+        cliente = self.cliente_repo.buscar_id(id)
+
+        if not cliente:
+            raise ValueError(f"Não existe um cliente cadastrado com o ID {id}.")
+        
+        return cliente
+    
+    def lista_busca(self) -> list[str]:
+        clientes = self.listar_todos()
+
+        return [f"{c.nome} ({c.cpf})" for c in clientes]

@@ -30,3 +30,8 @@ class ClienteRepository(BaseRepository):
         busca: list[dict] = self.db.consultar(self.path, "listar_por_cpf.sql", (cpf,))
 
         return Cliente(**busca[0]) if busca else None
+
+    def buscar_id(self, id: int) -> Cliente | None:
+        busca: list[dict] = self.db.consultar(self.path, "buscar_id.sql", (id,))
+
+        return Cliente(**busca[0]) if busca else None

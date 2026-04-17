@@ -44,3 +44,8 @@ class VeiculoService:
         veiculos = self.listar_veiculos()
 
         return [v.placa for v in veiculos]
+    
+    def lista_formatada(self) -> list[str]:
+        veiculos = self.listar_veiculos()
+        lista_f = [f"{v.marca} {v.modelo} {v.cor} {v.ano}" for v in veiculos]
+        return lista_f

@@ -1,12 +1,16 @@
 from ..models import Servico
 from ..repositories import ServicoRepository
-
+from ..cli.utils_cli import formatar_moeda
+from decimal import Decimal
 
 class ServicoService:
     def __init__(self, servico_repo: ServicoRepository):
         self.servico_repo = servico_repo
 
-    def adicionar(self, servico_model: Servico) -> int:
+    def adicionar(self, servico_model: Servico) -> None:
+        """
+        Adiciona um novo serviço ao banco de dados. Se já existir um serviço com a mesma descrição, ele é reativado (caso esteja desativado) ou uma exceção é lançada (caso esteja ativo).
+        """
         
         # Verifica se já existe serviço igual ativo
         s_ativos = self.listar_ativos()
@@ -21,11 +25,14 @@ class ServicoService:
 
         # Se existir um serviço desativado com a mesma descrição, reativa ele ao invés de criar um novo
         if s_existente_desativado and s_existente_desativado.id:
-            return self.reativar(s_existente_desativado.id)
-        else:
-            servico_id = self.servico_repo.adicionar(servico_model)
+            s_existente_desativado.preco = servico_model.preco
+            self.__reativar(s_existente_desativado)
             self.servico_repo.db.commit()
-            return servico_id
+            
+        # Caso contrário, cria um novo serviço
+        else:
+            self.servico_repo.adicionar(servico_model)
+            self.servico_repo.db.commit()
 
     def listar_ativos(self) -> list[Servico]:
         return self.servico_repo.listar_filt_disponivel(True)
@@ -33,15 +40,14 @@ class ServicoService:
     def listar_desativados(self) -> list[Servico]:
         return self.servico_repo.listar_filt_disponivel(False)
 
-    def reativar(self, id: int) -> int:
-        res = self.servico_repo.mudar_disponibilidade(id, True)
-        self.servico_repo.db.commit()
-        return res
+    def __reativar(self, servico: Servico) -> None:
+        if servico.id:
+            self.servico_repo.alterar_preco_descricao(servico.id, servico)
+            self.servico_repo.mudar_disponibilidade(servico.id, True)
 
-    def desativar(self, id: int) -> int:
-        res = self.servico_repo.mudar_disponibilidade(id, False)
+    def desativar(self, id: int) -> None:
+        self.servico_repo.mudar_disponibilidade(id, False)
         self.servico_repo.db.commit()
-        return res
     
     def alterar_preco_descricao(self, id: int, servico_model: Servico) -> int:
         if servico_model.preco < 0:
@@ -66,3 +72,8 @@ class ServicoService:
 
         return ativos + desativados
     
+    def lista_formatada(self, lista_servico: list[Servico]):
+        return [f"{s.descricao} - R${formatar_moeda(s.preco)}" for s in lista_servico]
+
+    def listar_descricao(self, lista_servicos: list[Servico]) -> list[str]:
+        return [s.descricao for s in lista_servicos]
