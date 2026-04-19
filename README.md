@@ -7,31 +7,32 @@ Resolver o problema de gerenciamento de ordens de serviço de uma oficina, garan
 
 ## 🛠️ Tecnologias Utilizadas
 * **Linguagem:** Python 3.x
-* **Banco de Dados:** PostgreSQL
+* **Banco de Dados:** PostgreSQL (Dockerizado)
 * **Bibliotecas Principais:** 
   * `psycopg`: Para conexão e transações com o banco.
   * `questionary`: Para a interface interativa de linha de comando (CLI).
   * `python-dotenv`: Para gerenciamento de credenciais (arquivo `.env`).
 * **Padrões de Projeto:** Arquitetura em camadas utilizando *Repository Pattern* e *Service Layer*.
-* **Modelagem:** dbdiagram.io e Draw.io
 
-## 📌 Diferenciais do Projeto
-* **Interface CLI Interativa:** Menus navegáveis, validações em tempo real (ex: CPF e formato de data) e paginação de listas.
-* **Arquitetura Limpa:** Separação clara entre acesso a dados (`repositories`), regras de negócio (`services`) e interação com o usuário (`cli`).
-* **Gestão Completa de OS:** Fluxo completo desde a abertura, adição de serviços realizados por mecânicos específicos, até a finalização e cancelamento.
-* **Integridade de Dados:** Validações para impedir CPFs duplicados e tratamento seguro de transações SQL (commit/rollback).
+## 🐳 Rodando com Docker (Recomendado)
+A forma mais fácil de rodar o projeto é utilizando o Docker, que já configura o banco de dados e as tabelas automaticamente.
 
-## 📂 Modelagem de Dados (Diagramas)
-Os modelos conceituais e lógicos do banco de dados podem ser visualizados abaixo:
+1.  **Inicie o banco de dados:**
+    ```bash
+    docker compose up -d
+    ```
+2.  **Configure o arquivo `.env`:**
+    Certifique-se de que as credenciais no seu `.env` coincidem com as do `docker-compose.yml` (veja a seção de configuração abaixo).
+3.  **Execute a aplicação:**
+    ```bash
+    python main.py
+    ```
 
-* [Modelo Conceitual](./diagramas/modelo_conceitual.png)
-* [Modelo Lógico](./diagramas/modelo_logico.png)
-
-## 🚀 Como Executar
+## 🚀 Como Executar Manualmente
 
 ### Pré-requisitos
 * Python 3 instalado.
-* PostgreSQL rodando localmente ou em servidor.
+* PostgreSQL rodando localmente.
 * Gerenciador de pacotes `uv` (recomendado) ou `pip`.
 
 ### Passo a Passo
@@ -42,31 +43,29 @@ Os modelos conceituais e lógicos do banco de dados podem ser visualizados abaix
    cd oficina-mecanica-db
    ```
 
-2. **Configure o Banco de Dados:**
-   * Crie um banco de dados no PostgreSQL (ex: `oficina_db`).
-   * Execute o script `sql/schema.sql` para criar as tabelas.
-   * (Opcional) Execute `sql/seed.sql` para popular com dados iniciais.
-
-3. **Configure as Variáveis de Ambiente:**
-   * Crie um arquivo `.env` na raiz do projeto com base no modelo abaixo:
-     ```env
-     DB_HOST=localhost
-     DB_NAME=oficina_db
-     DB_USER=seu_usuario
-     DB_PASSWORD=sua_senha
-     DB_PORT=5432
-     ```
-
-4. **Instale as dependências:**
-   ```bash
-   uv sync
-   # ou via pip: pip install -r requirements.txt (se aplicável)
+2. **Configure as Variáveis de Ambiente:**
+   Crie um arquivo `.env` na raiz do projeto:
+   ```env
+   DB_HOST=localhost
+   DB_NAME=oficina_db
+   DB_USER=user_oficina
+   DB_PASSWORD=password_oficina
+   DB_PORT=5432
    ```
 
-5. **Inicie a Aplicação:**
+3. **Instale as dependências:**
+   ```bash
+   uv sync
+   ```
+
+4. **Inicie a Aplicação:**
    ```bash
    python main.py
    ```
+
+## 📂 Modelagem de Dados (Diagramas)
+* [Modelo Conceitual](./diagramas/modelo_conceitual.png)
+* [Modelo Lógico](./diagramas/modelo_logico.png)
 
 ---
 **Desenvolvido por [Murilo](https://github.com/ol1rum)** *Estudante de Engenharia de Software – UNIFAN*
