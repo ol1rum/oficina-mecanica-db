@@ -2,6 +2,7 @@ import questionary
 from typing import Any
 from .validadores import ListaExistentesValidator, DataValidator, NumeroValidator
 from datetime import date
+from itertools import batched
 
 class FluxoCancelado(Exception):
     """Exceção para interromper o fluxo de perguntas quando o usuário cancela (None ou Ctrl+C)."""
@@ -96,3 +97,31 @@ def confirmar(msg: str, default: bool = True) -> bool:
     )
     
     return perguntar(prompt)
+
+def opcoes_com_paginacao(mensagem: str, lista_opcoes: dict[Any, str], maximo_por_pagina: int = 10) -> Any:
+    """Exibe opções em páginas, permitindo navegar entre elas. Retorna a chave da opção escolhida. """
+    offset = 0
+    lista_paginas = list(batched(lista_opcoes.items(), maximo_por_pagina))
+
+    while True:
+        lista_choice = [
+            questionary.Choice(title=titulo, value=chave) for chave, titulo in lista_paginas[offset]
+        ]
+        lista_choice.append(questionary.Choice(title="Proxima Pagina", value="proxima"))
+        lista_choice.append(questionary.Choice(title="Voltar ao Menu", value="voltar"))
+
+        prompt = questionary.select(
+            mensagem,
+            choices=lista_choice,
+            use_shortcuts=True,
+            pointer="🔹",
+        )
+        
+        escolha = perguntar(prompt)
+
+        if escolha == "proxima":
+            offset = (offset + 1) % len(lista_paginas)
+            continue
+        
+        return escolha
+        

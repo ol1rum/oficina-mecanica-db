@@ -8,5 +8,4 @@ SELECT
     cliente_id,
     observacoes,
     status
-FROM ordem_servico WHERE status = 'EM EXECUÇÃO'
-ORDER BY data_hora_abertura DESC
+FROM ordem_servico WHERE id = %s

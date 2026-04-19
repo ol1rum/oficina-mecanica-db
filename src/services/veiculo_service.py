@@ -40,7 +40,7 @@ class VeiculoService:
         self.veiculo_repo.transferir_proprietario(cliente_id, placa)
         self.veiculo_repo.db.commit()
 
-    def listar_placas(self) -> list[str]:
+    def listar_todas_placas(self) -> list[str]:
         veiculos = self.listar_veiculos()
 
         return [v.placa for v in veiculos]
@@ -49,3 +49,21 @@ class VeiculoService:
         veiculos = self.listar_veiculos()
         lista_f = [f"{v.marca} {v.modelo} {v.cor} {v.ano}" for v in veiculos]
         return lista_f
+
+    def buscar_por_cliente(self, cliente_model: Cliente) -> list[Veiculo]:
+
+        if not cliente_model.id:
+            raise ValueError("O ID do cliente não pode ser nulo.")
+        
+        lista_veiculos: list[Veiculo] = self.veiculo_repo.buscar_por_cliente(cliente_model.id)
+
+        return lista_veiculos
+    
+    def listar_placas(self, lista_veiculos: list[Veiculo]) -> list[str]:
+        return [v.placa for v in lista_veiculos]
+    
+    def buscar_por_id(self, id: int) -> Veiculo:
+        veiculo = self.veiculo_repo.buscar_id(id)
+        if not veiculo:
+            raise ValueError(f"Não existe um veículo cadastrado com o ID {id}.")
+        return veiculo

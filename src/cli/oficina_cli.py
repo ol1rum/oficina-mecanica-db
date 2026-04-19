@@ -2,8 +2,9 @@ import questionary as quest
 import os, subprocess
 import datetime
 from decimal import Decimal
+from typing import Literal
 
-from ..models import Cliente, Veiculo, OrdemServico, ServicoRealizado, Mecanico, Servico
+from ..models import Cliente, Veiculo, OrdemServico, ServicoRealizado, Mecanico, Servico, OSDetalhada
 from ..database import DatabaseManager
 from ..services import (
     ServicoService, ClienteService, VeiculoService, OrdemServicoService, MecanicoService
@@ -17,7 +18,7 @@ from .validadores import NovoCPFValidator, NovoValorStr
 from .titulos import *
 from .utils_cli import loop_menu, limpar_cpf
 from .quest_base import (
-    menu, buscar_na_lista, FluxoCancelado, confirmar, texto, pausar, data, numero
+    menu, buscar_na_lista, confirmar, texto, pausar, data, numero, opcoes_com_paginacao
 )
 
 
@@ -226,7 +227,7 @@ class OficinaCLI:
     # -------- buscar por placa ---------
     def fluxo_buscar_por_placa(self) -> None:
         print('\033[33;1m', "Pressione Ctrl+C para voltar", '\033[m', end="\n\n")
-        lista_placas = self.veiculo_serv.listar_placas()
+        lista_placas = self.veiculo_serv.listar_todas_placas()
 
         placa = buscar_na_lista("Placa do veículo:", lista_placas)
 
@@ -246,7 +247,7 @@ class OficinaCLI:
     # -------- trocar proprietario ---------
     def fluxo_trocar_proprietario(self) -> None:
         print('\033[33;1m', "Pressione Ctrl+C para voltar", '\033[m', end="\n\n")
-        lista_placas = self.veiculo_serv.listar_placas()
+        lista_placas = self.veiculo_serv.listar_todas_placas()
         lista_busca = self.cliente_serv.lista_busca()
 
         placa = buscar_na_lista("Placa do veículo:", lista_placas)
@@ -462,7 +463,7 @@ class OficinaCLI:
                 self.fluxo_abrir_os()
             
             case "historico":
-                self.fluxo_historico_os()
+                self.menu_historico_os()
             
             case "gerenciar":
                 self.fluxo_gerenciar_os()
@@ -473,17 +474,167 @@ class OficinaCLI:
     # -------- abrir nova ordem de serviço ---------
     def fluxo_abrir_os(self):
         print('\033[33;1m', "Pressione Ctrl+C para voltar", '\033[m', end="\n\n")
-        pass
+        
+        busca_cliente = self.cliente_serv.lista_busca()
+
+        # Pegar cliente da OS
+        cliente_esc = buscar_na_lista("Nome/CPF do Cliente:", busca_cliente)
+        cpf = limpar_cpf(cliente_esc.split()[-1])
+        cliente = self.cliente_serv.buscar_por_cpf(cpf)
+
+        # Pegar veiculo da OS
+        lista_veiculos_cliente = self.veiculo_serv.buscar_por_cliente(cliente)
+        busca_veiculo = self.veiculo_serv.listar_placas(lista_veiculos_cliente)
+
+        veiculo_esc = buscar_na_lista("Placa do Veículo:", busca_veiculo)
+        veiculo = self.veiculo_serv.buscar_por_placa(veiculo_esc)
+
+        km_atual = numero("Quilometragem Atual do Veículo:")
+        obs = texto("Observações da OS:")
+
+        if cliente.id and veiculo.id:
+            os = OrdemServico(
+                cliente_id=cliente.id,
+                veiculo_id=veiculo.id,
+                quilometragem_abertura=int(km_atual),
+                observacoes=obs
+            )
+            self.os_serv.abrir_os(os)
+            print("\nOrdem de Serviço aberta com sucesso!")
+            pausar()
+
+    def selecionar_os(self, lista_os: list[OrdemServico], mensagem: str) -> int | Literal["voltar"]:
+        if not lista_os:
+            print("\nNenhuma Ordem de Serviço encontrada.")
+            pausar()
+            return "voltar"
+
+        dict_formatado = {
+            os.id: f"{os.numero_os} - {os.status} | Aberta em: {os.data_hora_abertura.strftime('%d/%m/%Y %H:%M') if os.data_hora_abertura else 'N/A'}"
+            for os in lista_os if os.id is not None
+        }
+
+        return opcoes_com_paginacao(mensagem, dict_formatado)
 
     # -------- historico de ordens de serviços ---------
-    def fluxo_historico_os(self):
+    @loop_menu
+    def menu_historico_os(self):
         print('\033[33;1m', "Pressione Ctrl+C para voltar", '\033[m', end="\n\n")
-        pass
+
+        lista_finalizadas = self.os_serv.listar_finalizadas()
+        lista_canceladas = self.os_serv.listar_canceladas()
+        
+        os_id = self.selecionar_os(
+            lista_finalizadas + lista_canceladas, 
+            "Selecione uma OS do histórico para visualizar:"
+        )
+
+        if os_id == "voltar":
+            return "voltar"
+        
+        det_os = self.os_serv.detalhes_os(os_id)
+        self.mostrar_detalhes_os(det_os)
+
+
+    def mostrar_detalhes_os(self, det_os: OSDetalhada):
+        print(f"{f' OS-{det_os.numero_os} ':═^50}")
+        print(f"Cliente: {det_os.cliente_nome}")
+        print(f"CPF: {det_os.cliente_cpf}")
+        print(f"Placa: {det_os.veiculo_placa}")
+        print(f"Data de Abertura: {det_os.data_hora_abertura.strftime('%d/%m/%Y %H:%M')}")
+        if det_os.data_hora_fechamento:
+            print(f"Data de Fechamento: {det_os.data_hora_fechamento.strftime('%d/%m/%Y %H:%M')}")
+        print(f"Status: {det_os.status}")
+        print(f"Quilometragem: {det_os.quilometragem_abertura}")
+        print(f"Observações: {det_os.observacoes or 'Nenhuma'}")
+        print()
+        pausar()
+
 
     # -------- gerenciar ordens de serviços ---------
+    @loop_menu
     def fluxo_gerenciar_os(self):
         print('\033[33;1m', "Pressione Ctrl+C para voltar", '\033[m', end="\n\n")
-        pass
+        
+        lista_abertas = self.os_serv.listar_abertas()
+        os_id = self.selecionar_os(lista_abertas, "Selecione uma OS aberta para gerenciar:")
+
+        if os_id == "voltar":
+            return "voltar"
+
+        self.menu_acoes_os(os_id)
+
+    @loop_menu
+    def menu_acoes_os(self, os_id: int):
+        self.__limpar_tela()
+        det_os = self.os_serv.detalhes_os(os_id)
+        print(f"Gerenciando OS: {det_os.numero_os} - {det_os.cliente_nome}")
+        
+        escolha = menu(
+            "Selecione uma ação:",
+            {
+                "detalhes": "Ver Detalhes Completos",
+                "add_servico": "Adicionar Serviço Realizado",
+                "mudar_obs": "Alterar Observações",
+                "finalizar": "Finalizar OS",
+                "cancelar": "Cancelar OS",
+                "voltar": "Voltar"
+            }
+        )
+
+        match escolha:
+            
+            case "detalhes":
+                self.mostrar_detalhes_os(det_os)
+
+            case "add_servico":
+                self.fluxo_add_servico_os(os_id)
+
+            case "mudar_obs":
+                nova_obs = texto("Nova observação:", default=det_os.observacoes or "")
+                self.os_serv.alterar_observacoes(os_id, nova_obs)
+
+            case "finalizar":
+                if confirmar(f"Deseja realmente FINALIZAR a OS {det_os.numero_os}?"):
+                    self.os_serv.finalizar_os(os_id)
+                    return "voltar"
+                
+            case "cancelar":
+                if confirmar(f"Deseja realmente CANCELAR a OS {det_os.numero_os}?"):
+                    self.os_serv.cancelar_os(os_id)
+                    return "voltar"
+                
+            case "voltar":
+                return "voltar"
+
+    def fluxo_add_servico_os(self, os_id: int):
+        servicos = self.servico_serv.listar_ativos()
+        mecanicos = self.mecanico_serv.lista_busca() # Precisamos de uma lista de mecanicos
+
+        # Selecionar Serviço
+        dict_servicos = {s.id: f"{s.descricao} (R$ {s.preco})" for s in servicos if s.id is not None}
+        servico_id = opcoes_com_paginacao("Selecione o serviço:", dict_servicos)
+        if servico_id == "voltar": return
+
+        # Selecionar Mecânico
+        mecanico_esc = buscar_na_lista("Selecione o mecânico:", mecanicos)
+        m_cpf = limpar_cpf(mecanico_esc.split()[-1])
+        mecanico = self.mecanico_serv.buscar_por_cpf(m_cpf)
+
+        # Valor (pode sugerir o padrão)
+        serv_obj = next(s for s in servicos if s.id == servico_id)
+        valor = numero(f"Valor cobrado (Padrão: {serv_obj.preco}):", decimal=True, default=str(serv_obj.preco))
+
+        sr = ServicoRealizado(
+            os_id=os_id,
+            servico_id=servico_id,
+            mecanico_id=mecanico.id, # type: ignore
+            valor_cobrado=Decimal(valor)
+        )
+        
+        self.os_serv.add_servico_realizado(sr)
+        print("\nServiço adicionado com sucesso!")
+        pausar()
 
     def __limpar_tela(self) -> None:
         subprocess.run('cls' if os.name == 'nt' else 'clear', shell=True)

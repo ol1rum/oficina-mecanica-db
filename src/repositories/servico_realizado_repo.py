@@ -24,3 +24,7 @@ class ServicoRealizadoRepository(BaseRepository):
 
         lista_sr: list = [ServicoRealizado(**res) for res in res]
         return lista_sr
+
+    def buscar_id(self, id: int) -> ServicoRealizado | None:
+        res: list[dict] = self.db.consultar(self.path, "buscar_id.sql", (id,))
+        return ServicoRealizado(**res[0]) if res else None

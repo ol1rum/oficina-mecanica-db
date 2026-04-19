@@ -8,5 +8,5 @@ SELECT
     cliente_id,
     observacoes,
     status
-FROM ordem_servico WHERE status IN ('FINALIZADA', 'CANCELADA')
+FROM ordem_servico WHERE status = %s
 ORDER BY data_hora_abertura DESC

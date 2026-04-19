@@ -1,6 +1,6 @@
 from functools import wraps
 from .quest_base import FluxoCancelado
-from decimal import Decimal
+from ..utils import formatar_moeda, limpar_cpf
 
 def loop_menu(func):
     """
@@ -21,10 +21,3 @@ def loop_menu(func):
                 pass
                 
     return wrapper
-
-# Converter float para formato de dinheiro
-def formatar_moeda(valor: float | Decimal | int) -> str:
-    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-def limpar_cpf(cpf: str) -> str:
-    return cpf.replace(".", "").replace("-", "").replace("(", "").replace(")", "").strip()

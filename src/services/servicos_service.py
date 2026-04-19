@@ -1,6 +1,6 @@
 from ..models import Servico
 from ..repositories import ServicoRepository
-from ..cli.utils_cli import formatar_moeda
+from ..utils import formatar_moeda
 from decimal import Decimal
 
 class ServicoService:
@@ -77,3 +77,9 @@ class ServicoService:
 
     def listar_descricao(self, lista_servicos: list[Servico]) -> list[str]:
         return [s.descricao for s in lista_servicos]
+
+    def buscar_por_id(self, id: int) -> Servico:
+        servico = self.servico_repo.buscar_id(id)
+        if not servico:
+            raise ValueError(f"Não existe um serviço cadastrado com o ID {id}.")
+        return servico

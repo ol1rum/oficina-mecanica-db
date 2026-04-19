@@ -37,7 +37,7 @@ INSERT INTO ordem_servico (
     cliente_id,
     observacoes,
     status
-) VALUES ('OS-2026-001', '2026-04-01 09:00:00', '2026-04-01 16:30:00', 45000, 2, 2, 'Revisão de rotina para viagem.', 'FINALIZADA');
+) VALUES ('19042026171341169', '2026-04-01 09:00:00', '2026-04-01 16:30:00', 45000, 2, 2, 'Revisão de rotina para viagem.', 'FINALIZADA');
 
 -- Uma OS aberta (Em execução)
 INSERT INTO ordem_servico (
@@ -48,7 +48,7 @@ INSERT INTO ordem_servico (
     cliente_id,
     observacoes,
     status
-) VALUES ('OS-2026-002', CURRENT_TIMESTAMP, 12500, 1, 1, 'Barulho na suspensão dianteira ao passar em buracos.', 'EM EXECUÇÃO');
+) VALUES ('19042026171341156', CURRENT_TIMESTAMP, 12500, 1, 1, 'Barulho na suspensão dianteira ao passar em buracos.', 'EM EXECUÇÃO');
 
 -- POVOANDO SERVIÇOS REALIZADOS
 -- Serviços da OS Fechada

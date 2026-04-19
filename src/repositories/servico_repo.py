@@ -21,3 +21,7 @@ class ServicoRepository(BaseRepository):
 
     def alterar_preco_descricao(self, id: int, servico: Servico) -> int:
         return self.exec_sql("alterar_preco_descricao.sql", (servico.preco, servico.descricao, id))
+
+    def buscar_id(self, id: int) -> Servico | None:
+        res: list[dict] = self.db.consultar(self.path, "buscar_id.sql", (id,))
+        return Servico(**res[0]) if res else None
